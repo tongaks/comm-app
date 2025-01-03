@@ -1,50 +1,119 @@
 #include "../headers/window.h"
 
-void Window::SetUpSocket() {
-	server_info.sin_family = AF_INET;
-	server_info.sin_port = htons(4534);
-	server_info.sin_addr.s_addr = inet_addr("192.168.1.7");
+void Window::AddNewContactDialog(wxCommandEvent& ev) {
+    wxDialog* dialog = new wxDialog(this, wxID_ANY, "Enter new contact info", wxDefaultPosition, wxSize(200, 200));
 
+    wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
 
-	client_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (client_socket < 0) Error("Failed to create socket");
+    wxTextCtrl* name_field = new wxTextCtrl(dialog, wxID_ANY);
+    wxTextCtrl* id_field = new wxTextCtrl(dialog, wxID_ANY);
+    wxButton* confirm_button = new wxButton(dialog, wxID_OK, "Add");
 
-	int opt = 1;
-	if (setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt)) < 0)
-		Error("Failed to reuse the socket");
+    name_field->SetHint("Enter name here");
+    id_field->SetHint("Enter id here");
 
-	std::thread con([this](){this->ConnectToServer();});
-	con.detach();
+    vbox->Add(name_field, 0, wxALL | wxEXPAND, 10);
+    vbox->Add(id_field, 0, wxALL | wxEXPAND, 10);
+    vbox->Add(confirm_button, 0, wxALL | wxALIGN_CENTER, 10);
+
+    dialog->Bind(wxEVT_CLOSE_WINDOW, [this, dialog](wxCloseEvent &ec) {
+        dialog->EndModal(wxID_CANCEL);
+    });
+
+    confirm_button->Bind(wxEVT_BUTTON, [this, name_field, id_field](wxCommandEvent &ev) {
+        wxString name = name_field->GetValue();
+    	wxString id = id_field->GetValue();
+        if (name != "" && id != "") {
+            AddContactToGrid(name);
+            AddInfoToContactsFile(id, name);
+        } else Error("Please enter value to the fields");
+    });
+
+    dialog->SetSizer(vbox);
+	dialog->ShowModal();
 }
 
-void Window::ConnectToServer() {
-	while (!is_connected) {
-		int res = connect(client_socket, (struct sockaddr*) &server_info, sizeof(server_info)); 
+void Window::SendMessageDialog(wxCommandEvent& ev) {
+    wxDialog* dialog = new wxDialog(this, wxID_ANY, "Send message", wxDefaultPosition, wxSize(400, 300));
+    
+    wxBoxSizer* vbox = new wxBoxSizer(wxVERTICAL);
 
-		if (res == 0) {
-			is_connected = true;
-			break;
-		}
+    wxTextCtrl* msg_field = new wxTextCtrl(dialog, wxID_ANY);
+    msg_field->SetHint("Enter message here");
+ 
+    wxButton* send_button = new wxButton(dialog, wxID_OK, "Send");
+    wxButton* cancel_button = new wxButton(dialog, wxID_OK, "Cancel");
 
-		std::cout << "[!] Failed to connect. Trying again" << '\n';
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait before retrying
-	}
+    dialog->Bind(wxEVT_CLOSE_WINDOW, [this, dialog](wxCloseEvent &ec) {
+        dialog->EndModal(wxID_CANCEL);
+    });
 
-	std::cout << "[+] Connected to the server." << '\n';
-	std::thread connection_handler([this](){this->HandleConnection();});
-	connection_handler.detach();
+    cancel_button->Bind(wxEVT_BUTTON, [this, dialog](wxCommandEvent &ev) {
+        dialog->EndModal(wxID_CANCEL);
+    });
+
+    send_button->Bind(wxEVT_BUTTON, [this, msg_field, dialog](wxCommandEvent &ev) {
+        if (!msg_field->GetValue().IsEmpty()) {
+            SendMessage(msg_field->GetValue(), current_contact);
+        }
+        else Error("Please enter a message");
+    });
+
+    vbox->Add(msg_field, 0, wxALL | wxEXPAND, 10);
+    vbox->Add(send_button, 0, wxALL | wxALIGN_CENTER, 10);
+    vbox->Add(cancel_button, 0, wxALL | wxALIGN_CENTER, 10);
+
+    dialog->SetSizer(vbox);
+    dialog->ShowModal();
 }
 
-void Window::HandleConnection() {
-	do {
-		char buffer[1024];
-		int received = recv(client_socket, buffer, sizeof(buffer)-1, 0);
+void Window::GridSelectHandler(wxGridEvent &event) {
+    int selectedRow = event.GetRow();
+    std::string current_name;
+    std::string name = contacts_grid->GetCellValue(selectedRow, 0).ToStdString();
 
-		if (received > 0) {
-			buffer[received] = '\0';
-			std::cout << "You received this: " << buffer << '\n';
-		}
-		
-	} while (is_connected);
+    if (!name.empty()) {
+        current_contact = contact_ids[selectedRow];    
+    }
 
+    event.Skip();
+}
+
+void Window::AddContactToGrid(wxString name) {
+    int rowCount = contacts_grid->GetNumberRows();
+
+    contacts_grid->AppendRows(1);
+	contacts_grid->SetCellValue(rowCount, 0, name);
+    contacts_grid->SetRowSize(rowCount, 35);
+}
+
+void Window::AddInfoToContactsFile(wxString ID, wxString name) {
+    std::ofstream contacts_file("contacts.txt", std::ios::app);
+    if (!contacts_file) {
+        Error("Failed to open contacts.txt");
+        return;
+    }
+
+    contact_ids.push_back(std::stoi(ID.ToStdString()));
+    contacts_file << name << ' ' << ID << '\n';
+    contacts_file.close();
+}
+
+void Window::ReadContactsFile() {
+    std::ifstream contacts_file("contacts.txt");
+    if (!contacts_file) {
+        Error("Failed to open contacts.txt");
+        return;
+    }
+
+    std::string line;
+    while (getline(contacts_file, line)) {
+        std::string name; int id;
+        std::istringstream ss(line);
+        ss >> name >> id;
+
+        AddContactToGrid(name);
+        contact_names.push_back(name);
+        contact_ids.push_back(id);
+    }
 }

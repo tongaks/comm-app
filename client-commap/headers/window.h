@@ -12,6 +12,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <sys/stat.h>
 
 const auto wxDP = wxDefaultPosition;
 const auto wxDS = wxDefaultSize;
@@ -20,7 +23,9 @@ class Window : public wxFrame {
 	wxButton *message_button;
 	wxButton *add_button;
 	wxButton *delete_button;
+	wxButton *setid_button;
 	
+	wxTextCtrl *id_field;
 	wxGrid *contacts_grid;
 	
 	wxPanel *main_panel;
@@ -31,9 +36,15 @@ class Window : public wxFrame {
 	wxBoxSizer *contacts_sizer;
 	wxBoxSizer *buttons_sizer;
 
+	int current_contact = 0;
+	int my_id = 89234;
+
 	int client_socket = 0;
 	struct sockaddr_in server_info;
 	bool is_connected = false;
+
+	std::vector<wxString> contact_names;
+	std::vector<int> contact_ids;
 
 public:
 	Window(const wxString &title, wxPoint wPoint, wxSize wSize);
@@ -41,6 +52,18 @@ public:
 	void SetUpSocket();
 	void ConnectToServer();
 	void HandleConnection();
+
+	void AddNewContactDialog(wxCommandEvent &ev);
+	void AddContactToGrid(wxString name);
+	void GridSelectHandler(wxGridEvent &event);
+
+	void CreateContactsFile();
+	void CheckContactsFile();
+	void AddInfoToContactsFile(wxString ID, wxString name);
+	void ReadContactsFile();
+
+	void SendMessageDialog(wxCommandEvent &ev);
+	bool SendMessage(wxString msg, int id);
 
 	void Notice(std::string msg) {
 		wxMessageDialog *dg = new wxMessageDialog(NULL, msg, "Notice", wxOK);
