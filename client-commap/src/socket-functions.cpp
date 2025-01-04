@@ -15,11 +15,7 @@ void Window::SetUpSocket() {
 
 	std::cout << "Socket is up" << '\n';
 	std::thread con([this](){this->ConnectToServer();});
-	con.join();
-
-	std::cout << "[+] Connected to the server." << '\n';
-	std::thread connection_handler([this](){this->HandleConnection();});
-	connection_handler.detach();
+	con.detach();
 }
 
 void Window::ConnectToServer() {
@@ -36,6 +32,9 @@ void Window::ConnectToServer() {
 		std::cout << "[!] Failed to connect. Trying again" << '\n';
         std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait before retrying
 	}
+
+	std::cout << "[+] Connected to the server." << '\n';
+	HandleConnection();
 }
 
 void Window::HandleConnection() {

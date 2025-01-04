@@ -29,6 +29,7 @@ Window::Window(const wxString &title, wxPoint wPoint, wxSize wSize)
 	contacts_grid->HideRowLabels();
 	contacts_grid->SetSelectionMode(wxGrid::wxGridSelectCells);
     contacts_grid->SelectRow(0);
+    contacts_grid->SetGridCursor(0, 0);
 	
 	int grid_width = contacts_grid->GetSize().GetWidth();
     contacts_grid->SetColSize(0, grid_width);
