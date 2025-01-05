@@ -18,13 +18,14 @@ void Window::AddNewContactDialog(wxCommandEvent& ev) {
     vbox->Add(id_field, 0, wxALL | wxEXPAND, 10);
     vbox->Add(confirm_button, 0, wxALL | wxALIGN_CENTER, 10);
 
-    confirm_button->Bind(wxEVT_BUTTON, [this, name_field, id_field](wxCommandEvent &ev) {
+    confirm_button->Bind(wxEVT_BUTTON, [this, name_field, id_field, dialog](wxCommandEvent &ev) {
         wxString name = name_field->GetValue();
     	wxString id = id_field->GetValue();
         if (name != "" && id != "") {
             AddContactToGrid(name);
             AddInfoToContactsFile(id, name);
         } else Error("Please enter value to the fields");
+        dialog->EndModal(wxID_OK);
     });
 
     dialog->SetSizer(vbox);
@@ -96,15 +97,24 @@ void Window::AddInfoToContactsFile(wxString ID, wxString name) {
         return;
     }
 
+    for (int i = 0; i < name.length(); i++) {
+        if (name[i] == ' ' && !isdigit(name[i+1])) name[i] = '_';
+    }
+
+    std::cout << "clean_name: " << name << '\n';
+
     contact_ids.push_back(std::stoi(ID.ToStdString()));
     contacts_file << name << ' ' << ID << '\n';
     contacts_file.close();
 }
 
 void Window::ReadContactsFile() {
+    std::ifstream check("contacts.txt", std::ios::binary | std::ios::ate);
+    if (check.tellg() == 0) return;
+
     std::ifstream contacts_file("contacts.txt");
     if (!contacts_file) {
-        Error("Failed to open contacts.txt");
+        Error("Failed to open contacts.txt");        
         return;
     }
 
