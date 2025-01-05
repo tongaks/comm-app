@@ -65,6 +65,9 @@ public:
 	void SendMessageDialog(wxCommandEvent &ev);
 	bool SendMessage(wxString msg, int id);
 
+	void SaveConversation(wxString msg, int sender, int receiver);
+	void CheckConversationFile(int id);
+
 	void Notice(std::string msg) {
 		wxMessageDialog *dg = new wxMessageDialog(NULL, msg, "Notice", wxOK);
 		dg->ShowModal();

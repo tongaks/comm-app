@@ -76,7 +76,8 @@ void Window::GridSelectHandler(wxGridEvent &event) {
     std::string name = contacts_grid->GetCellValue(selectedRow, 0).ToStdString();
 
     if (!name.empty()) {
-        current_contact = contact_ids[selectedRow];    
+        current_contact = contact_ids[selectedRow];
+        // current_contact_name = name; 
     }
 
     event.Skip();
@@ -101,8 +102,6 @@ void Window::AddInfoToContactsFile(wxString ID, wxString name) {
         if (name[i] == ' ' && !isdigit(name[i+1])) name[i] = '_';
     }
 
-    std::cout << "clean_name: " << name << '\n';
-
     contact_ids.push_back(std::stoi(ID.ToStdString()));
     contacts_file << name << ' ' << ID << '\n';
     contacts_file.close();
@@ -110,7 +109,7 @@ void Window::AddInfoToContactsFile(wxString ID, wxString name) {
 
 void Window::ReadContactsFile() {
     std::ifstream check("contacts.txt", std::ios::binary | std::ios::ate);
-    if (check.tellg() == 0) return;
+    if (check.tellg() == 0) return; // check if contacts.txt is empty
 
     std::ifstream contacts_file("contacts.txt");
     if (!contacts_file) {

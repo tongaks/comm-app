@@ -8,8 +8,8 @@ Window::Window(const wxString &title, wxPoint wPoint, wxSize wSize)
 	contacts_panel = new wxPanel(this, wxID_ANY, wxDP, wxSize(400, 300));
 	buttons_panel = new wxPanel(this, wxID_ANY, wxDP, wxDS);
 
-	id_field = new wxTextCtrl(buttons_panel, wxID_ANY); id_field->Enable(false);
-	setid_button = new wxButton(buttons_panel, wxID_ANY, "Set ID", wxDP, wxDS); setid_button->Enable(false);
+	id_field = new wxTextCtrl(buttons_panel, wxID_ANY); // id_field->Enable(false);
+	setid_button = new wxButton(buttons_panel, wxID_ANY, "Set ID", wxDP, wxDS); // setid_button->Enable(false);
 	message_button = new wxButton(buttons_panel, wxID_ANY, "Message", wxDP, wxDS);
 	add_button = new wxButton(buttons_panel, wxID_ANY, "Add", wxDP, wxDS);
 	delete_button = new wxButton(buttons_panel, wxID_ANY, "Delete", wxDP, wxDS);

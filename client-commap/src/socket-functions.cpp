@@ -46,6 +46,18 @@ void Window::HandleConnection() {
 			buffer[received] = '\0';
 			std::cout << "You received this: " << buffer << '\n';
 			wxLogMessage(buffer);
+
+			std::string msg; int id;
+			char del = '\n';
+
+			size_t pos = std::string(buffer).find(del);
+
+		    if (pos != std::string::npos) {
+		        id = std::stoi(std::string(buffer, pos));        
+  				msg = std::string(buffer).substr(pos + 1);
+  			}
+
+  			SaveConversation(msg, id, my_id);
 		}
 	} while (is_connected);
 }
@@ -68,6 +80,25 @@ bool Window::SendMessage(wxString msg, int id) {
 	if (res < 0) {
 		Error("Failed to send message");
 		return false;
-	} else std::cout << "Message sent." << '\n';
-	return true;
+	} else {
+		std::cout << "Message sent." << '\n';
+		SaveConversation(msg, my_id, id);
+	} return true;
+}
+
+void Window::SaveConversation(wxString msg, int sender, int receiver) {
+	// write receiving save (clean the message seperate id from msg check server code)
+
+	std::ofstream save(std::to_string(receiver) + ".txt", std::ios::app);
+	save << sender << ' ' << msg << '\n';
+	save.close();
+}
+
+void Window::CheckConversationFile(int id) {
+	struct stat sb;
+	std::string fname = std::to_string(id) + ".txt";
+	if (stat(fname.c_str(), &sb) != 0) {
+		std::ofstream file(fname);
+		file.close();
+	}
 }
