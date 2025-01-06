@@ -57,7 +57,6 @@ public:
 	void AddContactToGrid(wxString name);
 	void GridSelectHandler(wxGridEvent &event);
 
-	void CreateContactsFile();
 	void CheckContactsFile();
 	void AddInfoToContactsFile(wxString ID, wxString name);
 	void ReadContactsFile();

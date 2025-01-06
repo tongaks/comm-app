@@ -4,7 +4,7 @@ client-commap: build/App.o build/window.o
 build/App.o: headers/App.h src/App.cpp
 	g++ -c src/App.cpp -o build/App.o `wx-config --cxxflags --libs`
 
-build/window.o: headers/window.h src/window.cpp src/window-functions.cpp src/socket-functions.cpp
+build/window.o: headers/window.h src/window.cpp src/window-functions.cpp src/socket-functions.cpp src/file-functions.cpp
 	g++ -c src/window.cpp -o build/window.o `wx-config --cxxflags --libs`
 
 clean:

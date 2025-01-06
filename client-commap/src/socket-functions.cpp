@@ -5,7 +5,6 @@ void Window::SetUpSocket() {
 	server_info.sin_port = htons(4534);
 	server_info.sin_addr.s_addr = inet_addr("192.168.1.15");
 
-
 	client_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (client_socket < 0) Error("Failed to create socket");
 
@@ -62,16 +61,6 @@ void Window::HandleConnection() {
 	} while (is_connected);
 }
 
-void Window::CheckContactsFile() {
-	struct stat sb;
-	if (stat("contacts.txt", &sb) != 0) CreateContactsFile();
-}
-
-void Window::CreateContactsFile() {
-	std::ofstream contacts_file("contacts.txt");
-	contacts_file.close();
-}
-
 bool Window::SendMessage(wxString msg, int id) {
 	std::string message = std::to_string(id) + "\n" + msg.ToStdString();
 	std::cout << "message: \n" << message << '\n';
@@ -84,21 +73,4 @@ bool Window::SendMessage(wxString msg, int id) {
 		std::cout << "Message sent." << '\n';
 		SaveConversation(msg, my_id, id);
 	} return true;
-}
-
-void Window::SaveConversation(wxString msg, int sender, int receiver) {
-	// write receiving save (clean the message seperate id from msg check server code)
-
-	std::ofstream save(std::to_string(receiver) + ".txt", std::ios::app);
-	save << sender << ' ' << msg << '\n';
-	save.close();
-}
-
-void Window::CheckConversationFile(int id) {
-	struct stat sb;
-	std::string fname = std::to_string(id) + ".txt";
-	if (stat(fname.c_str(), &sb) != 0) {
-		std::ofstream file(fname);
-		file.close();
-	}
 }
